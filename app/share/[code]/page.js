@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { Copy } from 'lucide-react';
 import Peer from 'peerjs';
-import { getFileFromDB } from '@/lib/indexedDB';
+import { getFilesFromDB } from '@/lib/indexedDB';
 
 export default function SharePage() {
   const params = useParams();
@@ -50,24 +50,60 @@ export default function SharePage() {
           console.log('Received data from receiver:', data);
           
           if (data.type === 'request-file') {
-            const file = await getFileFromDB();
+            const files = await getFilesFromDB();
             
-            if (!file) {
+            if (!files || files.length === 0) {
               console.error('No file found in IndexedDB');
               return;
             }
+
+            // Validate files before sending
+            const validFiles = files.filter((file) => file && file.name && file.size && file.type);
             
-            console.log('Starting transfer of file:', file.name, 'Size:', file.size);
+            if (validFiles.length === 0) {
+              console.error('No valid files found');
+              return;
+            }
+
+            console.log('Sending file list:', validFiles);
             
-            const chunkSize = 1024 * 1024; // 1MB chunks for larger files
-            let offset = 0;
+            // Send the list of files to the receiver
+            conn.send({
+              type: 'file-list',
+              files: validFiles.map((file) => ({
+                name: file.name,
+                size: file.size,
+                type: file.type
+              }))
+            });
+          }
+
+          if (data.type === 'request-file-chunk') {
+            const files = await getFilesFromDB();
+            const file = files[data.fileIndex];
+
+            if (!file) {
+              console.error('File not found');
+              return;
+            }
+
+            const chunkSize = 1024 * 1024; // 1MB chunks
+            let offset = data.offset;
             
             while (offset < file.size) {
               const chunk = file.slice(offset, offset + chunkSize);
               const arrayBuffer = await chunk.arrayBuffer();
               
+              // Check if the connection is still open
+              if (!conn.open) {
+                console.error('Connection closed prematurely');
+                return;
+              }
+
+              // Send the chunk
               conn.send({
                 type: 'file-chunk',
+                fileIndex: data.fileIndex,
                 data: arrayBuffer,
                 offset: offset,
                 filename: file.name,
@@ -75,15 +111,29 @@ export default function SharePage() {
                 mimeType: file.type
               });
               
+              // Update progress
               const progress = Math.min((offset / file.size) * 100, 100);
               conn.send({ type: 'progress', progress: progress });
               
               offset += chunkSize;
             }
             
-            console.log('Transfer complete, sending completion message');
-            conn.send({ type: 'transfer-complete' });
+            // Ensure the connection is still open before sending the completion message
+            if (conn.open) {
+              console.log('Transfer complete, sending completion message');
+              conn.send({ type: 'transfer-complete', fileIndex: data.fileIndex });
+            } else {
+              console.error('Connection closed before transfer completion');
+            }
           }
+        });
+
+        conn.on('close', () => {
+          console.log('Connection closed');
+        });
+
+        conn.on('error', (error) => {
+          console.error('Connection error:', error);
         });
       });
     });

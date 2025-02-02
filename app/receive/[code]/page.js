@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { Download } from 'lucide-react';
 import Peer from 'peerjs';
 
 export default function ReceivePage() {
@@ -11,11 +10,13 @@ export default function ReceivePage() {
   const [progress, setProgress] = useState(0);
   const [fileData, setFileData] = useState(null);
   const [error, setError] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(null);
 
-  // Add a ref to track chunks
+  const peerRef = useRef(null);
   const chunks = useRef([]);
-  // Add a ref for file metadata
   const fileMetadata = useRef(null);
+  const connRef = useRef(null);
 
   useEffect(() => {
     if (!params?.code) return;
@@ -29,87 +30,68 @@ export default function ReceivePage() {
       debug: 3
     });
 
+    peerRef.current = peer;
+
     peer.on('open', (id) => {
       console.log('Receiver peer opened with ID:', id);
       const conn = peer.connect(`jalebi-${params.code}`);
+      connRef.current = conn;
 
-      // Add this message listener before opening connection
       conn.on('data', (data) => {
-        console.log('Received initial handshake:', data);
+        console.log('Received data from sender:', data);
+
+        if (data.type === 'file-list') {
+          setFiles(data.files);
+          setStatus('file-list-received');
+        }
+
+        if (data.type === 'file-chunk') {
+          if (data.fileIndex !== selectedFileIndex) return;
+
+          console.log('Received chunk:', data.offset, data.data.byteLength);
+          chunks.current.push(data.data);
+          setProgress((data.offset / data.fileSize) * 100);
+        }
+
+        if (data.type === 'transfer-complete') {
+          if (data.fileIndex !== selectedFileIndex) return;
+
+          console.log('All chunks received, reconstructing file...');
+          const blob = new Blob(chunks.current, { type: fileMetadata.current.type });
+          const url = URL.createObjectURL(blob);
+
+          console.log('File URL:', url);
+          setFileData({
+            filename: fileMetadata.current.name,
+            url: url
+          });
+
+          setStatus('complete');
+          chunks.current = [];
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileMetadata.current.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       });
 
       conn.on('open', () => {
         console.log('Connection to sender established');
         setStatus('connected');
-        
-        // Add connection state logging
-        console.log('Connection readyState:', conn.peerConnection.connectionState);
-        console.log('Data channel readyState:', conn.dataChannel.readyState);
-        
-        // Add slight delay to ensure channel is ready
-        setTimeout(() => {
-          console.log('Requesting file transfer');
-          conn.send({ type: 'request-file' });
-        }, 500);
+        conn.send({ type: 'request-file' });
+      });
+
+      conn.on('close', () => {
+        console.log('Connection closed');
       });
 
       conn.on('error', (error) => {
         console.error('Connection error:', error);
         setStatus('error');
         setError(error.message);
-      });
-
-      conn.on('data', (data) => {
-        console.log('Received data of type:', data.type);
-
-        if (data.type === 'file-chunk') {
-          // Store metadata in ref if not already set
-          if (!fileMetadata.current) {
-            fileMetadata.current = {
-              filename: data.filename,
-              fileSize: data.fileSize,
-              mimeType: data.mimeType
-            };
-            // Update state for UI
-            setFileData(fileMetadata.current);
-          }
-          
-          chunks.current.push(data.data);
-          const progress = (data.offset / data.fileSize) * 100;
-          setProgress(progress);
-        }
-        else if (data.type === 'transfer-complete') {
-          console.log('Transfer complete, processing file');
-          try {
-            if (!fileMetadata.current) {
-              throw new Error('File metadata not received');
-            }
-            
-            // Combine all chunks from ref
-            const blob = new Blob(chunks.current, { type: fileMetadata.current.mimeType });
-            chunks.current = []; // Reset chunks
-            
-            // Create download link
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileMetadata.current.filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            setStatus('complete');
-          } catch (error) {
-            console.error('Error processing file:', error);
-            setStatus('error');
-            setError(error.message);
-          }
-        }
-
-        console.log('First chunk received:', data);
-        console.log('Current fileMetadata:', fileMetadata.current);
-        console.log('Chunks received:', chunks.current.length);
       });
     });
 
@@ -120,52 +102,122 @@ export default function ReceivePage() {
     });
 
     return () => {
-      peer.destroy();
+      if (peerRef.current) {
+        peerRef.current.destroy();
+      }
+      if (connRef.current) {
+        connRef.current.close();
+      }
     };
-  }, [params?.code]);
+  }, [params.code, selectedFileIndex]);
+
+  useEffect(() => {
+    if (fileData) {
+      console.log('File data updated:', fileData);
+    }
+  }, [fileData]);
+
+  const handleFileSelect = (index) => {
+    setSelectedFileIndex(index);
+    setStatus('downloading');
+    chunks.current = [];
+    fileMetadata.current = files[index];
+
+    if (connRef.current && connRef.current.open) {
+      console.log('Connection is open, requesting file chunks...');
+      connRef.current.send({
+        type: 'request-file-chunk',
+        fileIndex: index,
+        offset: 0
+      });
+    } else {
+      console.error('Connection is not open');
+      setStatus('error');
+      setError('Connection is not open. Please try again.');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-yellow-500 flex flex-col items-center justify-center p-4">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-xl">
-        <div className="flex flex-col items-center">
-          <Download size={64} className="text-orange-500 mb-4" />
-          
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            {status === 'connecting' ? 'Connecting...' : 
-             status === 'connected' ? 'Receiving File' :
-             status === 'complete' ? 'Download Complete' :
-             status === 'error' ? 'Error' : 'Waiting...'}
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-yellow-500 flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-yellow-100 rounded-full opacity-20 animate-jalebi-spin"></div>
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
+            <span className="text-yellow-600 animate-bounce">🌀</span>
+            Jalebi-Fafda
+            <span className="text-yellow-600 animate-bounce">🌀</span>
           </h1>
+          
+          <p className="text-lg text-gray-600 mb-8 text-center">
+            Peer-to-peer file sharing, no server required
+          </p>
 
-          {status === 'error' && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-              Error: {error || 'Failed to transfer file'}
+          {status === 'file-list-received' && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Select a file to download:
+              </h2>
+              <ul className="space-y-3">
+                {files.map((file, index) => (
+                  <li
+                    key={index}
+                    className="bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-yellow-50 transition-all duration-300 border-l-4 border-transparent hover:border-yellow-400"
+                    onClick={() => handleFileSelect(index)}
+                  >
+                    <p className="text-gray-900 font-medium">{file.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {(status === 'connected' || status === 'transferring') && (
-            <div className="w-full">
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div 
-                  className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+          {status === 'downloading' && (
+            <div className="mb-8">
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                <div
+                  className="bg-yellow-400 h-3 rounded-full transition-all duration-300 relative overflow-hidden"
                   style={{ width: `${progress}%` }}
-                />
+                >
+                  <div className="absolute inset-0 bg-yellow-200 animate-pulse"></div>
+                </div>
               </div>
-              {fileData && (
-                <p className="text-center text-gray-600 mb-2">
-                  Receiving: {fileData.filename}
-                </p>
-              )}
-              <p className="text-center text-gray-600">
-                {progress.toFixed(1)}% complete
+              <p className="text-center text-gray-700">
+                Downloading: {fileMetadata.current?.name} ({progress.toFixed(1)}%)
               </p>
             </div>
           )}
 
-          {status === 'complete' && (
-            <p className="text-center text-green-600">
-              File download should begin automatically
-            </p>
+          {status === 'complete' && fileData && (
+            <div className="text-center">
+              <p className="text-gray-700 mb-4">
+                Download complete: {fileData.filename}
+              </p>
+              <button
+                onClick={() => {
+                  setStatus('file-list-received');
+                  setFileData(null);
+                }}
+                className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+              >
+                Select Another File
+              </button>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="text-center">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
           )}
         </div>
       </div>
