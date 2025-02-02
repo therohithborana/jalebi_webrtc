@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { Copy } from 'lucide-react';
 import Peer from 'peerjs';
+import { getFileFromDB } from '@/lib/indexedDB';
 
 export default function SharePage() {
   const params = useParams();
@@ -49,38 +50,32 @@ export default function SharePage() {
           console.log('Received data from receiver:', data);
           
           if (data.type === 'request-file') {
-            const fileData = sessionStorage.getItem('fileToShare');
-            console.log('Retrieved file from sessionStorage:', fileData);
+            const file = await getFileFromDB();
             
-            if (!fileData) {
-              console.error('No file found in sessionStorage');
+            if (!file) {
+              console.error('No file found in IndexedDB');
               return;
             }
             
-            const fileInfo = JSON.parse(fileData);
-            console.log('Starting transfer of file:', fileInfo.name, 'Size:', fileInfo.size);
+            console.log('Starting transfer of file:', file.name, 'Size:', file.size);
             
-            // Convert the stored array back to Uint8Array
-            const uint8Array = new Uint8Array(fileInfo.data);
-            const blob = new Blob([uint8Array], { type: fileInfo.type });
-            
-            const chunkSize = 16384; // 16KB chunks
+            const chunkSize = 1024 * 1024; // 1MB chunks for larger files
             let offset = 0;
             
-            while (offset < fileInfo.size) {
-              const chunk = blob.slice(offset, offset + chunkSize);
+            while (offset < file.size) {
+              const chunk = file.slice(offset, offset + chunkSize);
               const arrayBuffer = await chunk.arrayBuffer();
               
               conn.send({
                 type: 'file-chunk',
                 data: arrayBuffer,
                 offset: offset,
-                filename: fileInfo.name,
-                fileSize: fileInfo.size,
-                mimeType: fileInfo.type
+                filename: file.name,
+                fileSize: file.size,
+                mimeType: file.type
               });
               
-              const progress = Math.min((offset / fileInfo.size) * 100, 100);
+              const progress = Math.min((offset / file.size) * 100, 100);
               conn.send({ type: 'progress', progress: progress });
               
               offset += chunkSize;

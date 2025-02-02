@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
+import { saveFileToDB } from '@/lib/indexedDB';
 
 export default function Home() {
   const router = useRouter();
@@ -14,20 +15,8 @@ export default function Home() {
       const file = acceptedFiles[0];
       const code = Math.floor(1000 + Math.random() * 9000).toString();
       
-      // Read file as ArrayBuffer
-      const arrayBuffer = await file.arrayBuffer();
-      const fileData = {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: arrayBuffer
-      };
-      
-      // Store ArrayBuffer directly
-      sessionStorage.setItem('fileToShare', JSON.stringify({
-        ...fileData,
-        data: Array.from(new Uint8Array(arrayBuffer)) // Convert to standard array
-      }));
+      // Save file to IndexedDB
+      await saveFileToDB(file);
       
       router.push(`/share/${code}?filename=${encodeURIComponent(file.name)}&size=${file.size}`);
     }
