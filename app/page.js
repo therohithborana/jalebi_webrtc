@@ -14,17 +14,21 @@ export default function Home() {
       const file = acceptedFiles[0];
       const code = Math.floor(1000 + Math.random() * 9000).toString();
       
-      // Convert file to ArrayBuffer for proper storage
+      // Read file as ArrayBuffer
       const arrayBuffer = await file.arrayBuffer();
       const fileData = {
         name: file.name,
         type: file.type,
         size: file.size,
-        data: Array.from(new Uint8Array(arrayBuffer)) // Convert to standard array
+        data: arrayBuffer
       };
       
-      sessionStorage.setItem('fileToShare', JSON.stringify(fileData));
-      console.log('File stored in sessionStorage:', fileData);
+      // Store ArrayBuffer directly
+      sessionStorage.setItem('fileToShare', JSON.stringify({
+        ...fileData,
+        data: Array.from(new Uint8Array(arrayBuffer)) // Convert to standard array
+      }));
+      
       router.push(`/share/${code}?filename=${encodeURIComponent(file.name)}&size=${file.size}`);
     }
   };
