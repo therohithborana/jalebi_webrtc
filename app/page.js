@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Send } from 'lucide-react';
 import { saveFilesToDB } from '@/lib/indexedDB';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -48,7 +49,13 @@ export default function Home() {
       }}
     >
       <div className="text-center mb-12">
-        <img src="/jalebijheta-removebg-preview.png" alt="Jalebi" className="w-48 h-48 mb-4 mx-auto" />
+        <Image 
+          src="/jalebijheta-removebg-preview.png" 
+          alt="Jalebi" 
+          width={192} 
+          height={192} 
+          className="mb-4 mx-auto" 
+        />
         <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4">
           Jalebi-Fafda
         </h1>
@@ -67,7 +74,7 @@ export default function Home() {
         <div className="flex flex-col items-center text-white">
           <Upload size={64} className="mb-4" />
           <p className="text-xl font-medium text-center">
-            Drop it like it's Hot
+            Drop it like it&apos;s Hot
           </p>
           {/* <p className="mt-2 opacity-75 text-center">
             Your files will be encrypted and shared securely. <br />
@@ -98,7 +105,7 @@ export default function Home() {
 
       <div className="mt-12 text-center text-white/60 text-sm">
         <p>
-          Made with Jalebi's sweetness by{' '}
+          Made with Jalebi&apos;s sweetness by{' '}
           <a
             href="https://www.linkedin.com/in/rohith-borana-b10778266/"
             target="_blank"
