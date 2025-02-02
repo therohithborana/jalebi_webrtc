@@ -23,9 +23,9 @@ export default function ReceivePage() {
     console.log('Initializing receiver with code:', params.code);
 
     const peer = new Peer({
-      host: 'localhost',
-      port: 9000,
-      path: '/myapp',
+      host: '0.peerjs.com',
+      port: 443,
+      path: '/',
       debug: 3
     });
 

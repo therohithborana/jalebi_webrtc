@@ -21,9 +21,9 @@ export default function SharePage() {
 
   useEffect(() => {
     const newPeer = new Peer(`jalebi-${code}`, {
-      host: 'localhost',
-      port: 9000,
-      path: '/myapp',
+      host: '0.peerjs.com',
+      port: 443,
+      path: '/',
       debug: 3
     });
 
