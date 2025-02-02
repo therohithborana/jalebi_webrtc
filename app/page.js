@@ -40,9 +40,16 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-yellow-500 flex flex-col items-center justify-center p-4">
+    <div 
+      className="min-h-screen bg-black flex flex-col items-center justify-center p-4"
+      style={{
+        backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+        backgroundSize: '20px 20px',
+      }}
+    >
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+        <img src="/jalebijheta-removebg-preview.png" alt="Jalebi" className="w-48 h-48 mb-4 mx-auto" />
+        <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4">
           Jalebi-Fafda
         </h1>
         <p className="text-xl text-white opacity-90">
@@ -52,19 +59,20 @@ export default function Home() {
 
       <div
         {...getRootProps()}
-        className={`w-full max-w-xl p-12 rounded-xl bg-white/10 backdrop-blur-md border-4 border-dashed 
-          ${isDragging ? 'border-white' : 'border-white/50'}
+        className={`w-full max-w-sm p-6 rounded-2xl bg-white/10 border-2 border-dashed border-white/20 
+          ${isDragging ? 'border-white/50' : 'border-white/20'}
           transition-all duration-200 cursor-pointer hover:bg-white/20`}
       >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center text-white">
           <Upload size={64} className="mb-4" />
           <p className="text-xl font-medium text-center">
-            Drop files here, or click to select
+            Drop it like it's Hot
           </p>
-          <p className="mt-2 opacity-75">
-            Your files will be encrypted and shared securely
-          </p>
+          {/* <p className="mt-2 opacity-75 text-center">
+            Your files will be encrypted and shared securely. <br />
+            <span className="text-sm italic">No Jalebis were harmed in the making of this app.</span>
+          </p> */}
         </div>
       </div>
 
@@ -87,6 +95,20 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      <div className="mt-12 text-center text-white/60 text-sm">
+        <p>
+          Made with Jalebi's sweetness by{' '}
+          <a
+            href="https://www.linkedin.com/in/rohith-borana-b10778266/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:underline text-yellow-500"
+          >
+            Rohith Borana
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
