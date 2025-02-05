@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Send } from 'lucide-react';
+import { Upload, Send, Trash2 } from 'lucide-react';
 import { saveFilesToDB } from '@/lib/indexedDB';
 import Image from 'next/image';
 
@@ -14,6 +14,10 @@ export default function Home() {
 
   const onDrop = (acceptedFiles) => {
     setFiles((prev) => [...prev, ...acceptedFiles]);
+  };
+
+  const handleDeleteFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSend = async () => {
@@ -52,8 +56,8 @@ export default function Home() {
         <Image 
           src="/jalebijheta-removebg-preview.png" 
           alt="Jalebi" 
-          width={192} 
-          height={192} 
+          width={256}
+          height={256}
           className="mb-4 mx-auto" 
         />
         <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4">
@@ -88,8 +92,19 @@ export default function Home() {
           <h2 className="text-xl font-bold text-white mb-4">Selected Files:</h2>
           <ul className="bg-white/10 p-4 rounded-lg">
             {files.map((file, index) => (
-              <li key={index} className="text-white">
-                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              <li key={index} className="text-white flex items-center justify-between p-3 hover:bg-white/20 transition-all duration-200">
+                <div>
+                  <p className="font-medium">{file.name}</p>
+                  <p className="text-sm text-white/80">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDeleteFile(index)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <Trash2 size={20} className="text-red-500" />
+                </button>
               </li>
             ))}
           </ul>
