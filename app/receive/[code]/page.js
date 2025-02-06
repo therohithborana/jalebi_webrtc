@@ -140,42 +140,46 @@ export default function ReceivePage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <Image 
           src="/jalebijheta-removebg-preview.png" 
           alt="Jalebi" 
-          width={256} 
-          height={256} 
+          width={192}
+          height={192}
           className="mb-4 mx-auto" 
         />
-        <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
           Jalebi-Fafda
         </h1>
-        <p className="text-xl text-white opacity-90">
+        <p className="text-lg md:text-xl text-white opacity-90">
           Peer-to-peer file sharing, no server required
         </p>
       </div>
 
-      <div className="w-full max-w-xl bg-white/10 p-8 rounded-2xl border-2 border-dashed border-white/20">
+      <div className="w-full max-w-md bg-white/10 p-4 md:p-6 rounded-2xl border-2 border-dashed border-white/20">
         {status === 'file-list-received' && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">
+          <div className="mb-6">
+            <h2 className="text-lg md:text-xl font-bold text-white mb-4">
               Select a file to download:
             </h2>
-            <p className="text-sm text-white/60 mb-4">
+            <p className="text-xs md:text-sm text-white/60 mb-4">
               If the file doesn&apos;t start downloading, click it again.
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {files.map((file, index) => (
                 <li
                   key={index}
-                  className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-all duration-200"
+                  className="bg-white/10 p-2 md:p-3 rounded-lg cursor-pointer hover:bg-white/20 transition-all duration-200"
                   onClick={() => handleFileSelect(index)}
                 >
-                  <p className="text-white font-medium">{file.name}</p>
-                  <p className="text-sm text-white/80">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <p className="text-white font-medium text-sm md:text-base truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs md:text-sm text-white/80">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -183,10 +187,10 @@ export default function ReceivePage() {
         )}
 
         {status === 'downloading' && (
-          <div className="mb-8">
-            <div className="w-full bg-white/20 rounded-full h-3 mb-4">
+          <div className="mb-6">
+            <div className="w-full bg-white/20 rounded-full h-2 md:h-3 mb-2">
               <div
-                className="bg-yellow-500 h-3 rounded-full transition-all duration-300 relative overflow-hidden"
+                className="bg-yellow-500 h-2 md:h-3 rounded-full transition-all duration-300 relative overflow-hidden"
                 style={{ width: `${progress}%` }}
               >
                 <div className="absolute inset-0 bg-yellow-400 animate-pulse"></div>
@@ -228,7 +232,7 @@ export default function ReceivePage() {
         )}
       </div>
 
-      <div className="mt-12 text-center text-white/60 text-sm">
+      <div className="mt-8 text-center text-white/60 text-xs md:text-sm">
         <p>
           Made with Jalebi&apos;s sweetness by{' '}
           <a

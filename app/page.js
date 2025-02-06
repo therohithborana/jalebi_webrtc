@@ -52,58 +52,56 @@ export default function Home() {
         backgroundSize: '20px 20px',
       }}
     >
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <Image 
           src="/jalebijheta-removebg-preview.png" 
           alt="Jalebi" 
-          width={256}
-          height={256}
+          width={192}
+          height={192}
           className="mb-4 mx-auto" 
         />
-        <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
           Jalebi-Fafda
         </h1>
-        <p className="text-xl text-white opacity-90">
+        <p className="text-lg md:text-xl text-white opacity-90">
           Peer-to-peer file sharing, no server required
         </p>
       </div>
 
       <div
         {...getRootProps()}
-        className={`w-full max-w-sm p-6 rounded-2xl bg-white/10 border-2 border-dashed border-white/20 
+        className={`w-full max-w-sm p-4 md:p-6 rounded-2xl bg-white/10 border-2 border-dashed border-white/20 
           ${isDragging ? 'border-white/50' : 'border-white/20'}
           transition-all duration-200 cursor-pointer hover:bg-white/20`}
       >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center text-white">
-          <Upload size={64} className="mb-4" />
-          <p className="text-xl font-medium text-center">
+          <Upload size={48} className="mb-2" />
+          <p className="text-lg md:text-xl font-medium text-center">
             Drop it like it&apos;s Hot
           </p>
-          {/* <p className="mt-2 opacity-75 text-center">
-            Your files will be encrypted and shared securely. <br />
-            <span className="text-sm italic">No Jalebis were harmed in the making of this app.</span>
-          </p> */}
         </div>
       </div>
 
       {files.length > 0 && (
-        <div className="mt-8 w-full max-w-xl">
-          <h2 className="text-xl font-bold text-white mb-4">Selected Files:</h2>
-          <ul className="bg-white/10 p-4 rounded-lg">
+        <div className="mt-6 w-full max-w-md">
+          <h2 className="text-lg md:text-xl font-bold text-white mb-4">Selected Files:</h2>
+          <ul className="bg-white/10 p-3 md:p-4 rounded-lg">
             {files.map((file, index) => (
-              <li key={index} className="text-white flex items-center justify-between p-3 hover:bg-white/20 transition-all duration-200">
-                <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-white/80">
+              <li key={index} className="text-white flex items-center justify-between p-2 md:p-3 hover:bg-white/20 transition-all duration-200">
+                <div className="flex-1 min-w-0 pr-2">
+                  <p className="font-medium text-sm md:text-base truncate">
+                    {file.name}
+                  </p>
+                  <p className="text-xs md:text-sm text-white/80">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
                 <button
                   onClick={() => handleDeleteFile(index)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-1 md:p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
-                  <Trash2 size={20} className="text-red-500" />
+                  <Trash2 size={16} className="text-red-500" />
                 </button>
               </li>
             ))}
@@ -112,13 +110,13 @@ export default function Home() {
             onClick={handleSend}
             className="mt-4 w-full bg-white text-orange-500 py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
           >
-            <Send size={20} />
-            Send Files
+            <Send size={16} />
+            <span className="text-sm md:text-base">Send Files</span>
           </button>
         </div>
       )}
 
-      <div className="mt-12 text-center text-white/60 text-sm">
+      <div className="mt-8 text-center text-white/60 text-xs md:text-sm">
         <p>
           Made with Jalebi&apos;s sweetness by{' '}
           <a
