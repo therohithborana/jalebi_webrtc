@@ -2,7 +2,7 @@
 
 **Jalebi-Fafda** is a peer-to-peer file sharing application that operates without the need for a central server. Leveraging WebRTC technology, it enables users to share files directly between browsers, ensuring efficient and secure transfers.
 
-![Jalebi-Fafda Logo](./public/jalebi.jpg)
+![Jalebi-Fafda Logo](./public/jalebijheta-removebg-preview.png)
 
 ## Features
 
