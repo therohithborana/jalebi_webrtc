@@ -2,7 +2,10 @@
 
 **Jalebi-Fafda** is a peer-to-peer file sharing application that operates without the need for a central server. Leveraging WebRTC technology, it enables users to share files directly between browsers, ensuring efficient and secure transfers.
 
-![Jalebi-Fafda Logo](./public/jalebijheta-removebg-preview.png)
+<p align="center">
+  <img src="./public/jalebijheta-removebg-preview.png" alt="Jalebi-Fafda Logo">
+</p>
+
 
 ## Features
 
@@ -76,6 +79,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 ## Acknowledgements
 
-Special thanks to all contributors and the open-source community for their invaluable support and resources.
+Special thanks to File(dot)Pizza and Jhetalal for making this project successful and embarking the spark in me to pursue this project.
 
 
