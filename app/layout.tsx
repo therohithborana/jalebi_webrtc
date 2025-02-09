@@ -17,10 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <title>Jalebi-Fafda</title> 
+        <meta name="description" content="Enjoy the crispy and sweet delight of Jalebi-Fafda!" />
         <link rel="icon" href="/jalebijheta-removebg-preview.png" type="image/png" />
       </head>
       <body className={inter.className}>
-        <img src="/jalebijheta-removebg-preview.png" alt="Jalebi-Fafda Logo" width="150" />
         {children}
       </body>
     </html>
