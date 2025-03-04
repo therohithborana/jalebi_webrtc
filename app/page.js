@@ -115,6 +115,9 @@ export default function Home() {
           </button>
         </div>
       )}
+        
+
+      <div className="mt-8 text-center text-white/60 text-xs md:text-sm">
         <p>
           Made with Jalebi&apos;s sweetness by{' '}
           <a
@@ -126,9 +129,6 @@ export default function Home() {
             Rohith Borana
           </a>
         </p>
-
-      <div className="mt-8 text-center text-white/60 text-xs md:text-sm">
-        
       </div>
     </div>
   );
